@@ -4,7 +4,7 @@ class Ocd implements Iterator {
 
     private $query; // hash for input
     private $page; // the result (page)hash we provide during iteration n=0,..,n
-    private $page_size = 20; // impact on memory
+    private $size = 20; // impact on memory
     private $current; // pointer to array n=0,1,...,n
 
     public function __construct() {
@@ -14,25 +14,53 @@ class Ocd implements Iterator {
         $this->query['source'] = NULL;
     }
 
-    // sets the maximum results
-    public function limit($results) {
-        $this->query['limit'] = $results;
+    public function get_facets(){ 
+        // return facets from $this->page if they exist
+         return $this->page['facets'];        
+    }
+    
+    
+    
+    // returns version of the object that is not iteratable
+    // GET /(source_id)/(object_id)/source
+    public function object($id){
+        // !search 
+        // but source && similar is required
+        $this->query['object_id'] = $object_id;
+        return ;//! $this;, but return HTML stub
+    }
+    
+    public function similar($id) {
+        // source is allowed
+        $this->query['similar'] = $id;
+        $this->query['query_str'] = null;
         return $this;
     }
 
     // sets the search query string
-    public function search($query_str) {
-        $this->query['query_str'] = $query_str;
+    public function search($search_str) {        
+        // source is allowed
+        $this->query['query_str'] = $search_str;
+        $this->query['similar']= null;
         return $this;
     }
 
-    // sets the source of the Query (Rijksmuseum, Stedelijk). Null == Everything
+    
+    
+    // sets the (sole) source of the Query (Rijksmuseum, Stedelijk). Null == Everything
     public function source($source) {
         $this->query['source'] = $source;
         return $this;
     }
 
-    // adds array of facets to current query 
+    // (re)sets sort based on array of sort hashes
+    // { "date":   { "order": "desc" }},{ "_score": { "order": "desc" }}
+    public function sort($sort) {
+        $this->query['sort'] = $sort;
+        return $this;
+    }
+    
+    // adds array of facets to current query which are added to stack
     public function add_facets($facets) {
         foreach ($facets as $item) {
             $this->query['facets'][key($facets)] = $facets[key($facets)];
@@ -40,7 +68,7 @@ class Ocd implements Iterator {
         return $this;
     }
 
-    // assumes array of filters key values
+    // assumes array of filters key values which are added to stack
     public function add_filters($filters) {
         foreach ($filters as $item) {
             $this->query['filters'][key($filters)] = $filters[key($filters)];
@@ -48,14 +76,6 @@ class Ocd implements Iterator {
         return $this;
     }
 
-// Finalizes Object for Iteration (does no loading yet!)
-    public function query($query_str = null) {
-        // retrieve full object other option?
-        if (isset($query_str))
-            search($query_str);
-
-        return $this;
-    }
 
     // (re)sets facets with array of facets
     public function facets($facets) {
@@ -69,6 +89,21 @@ class Ocd implements Iterator {
         return $this;
     }
 
+        // sets the maximum results
+    public function limit($results) {
+        $this->query['limit'] = $results;
+        return $this;
+    }
+
+    // Finalizes Object for Iteration (does no loading yet!)
+    public function query() {
+        // retrieve full object other option?
+        // now we assume a search query in our iterator class (Rewind and Next
+        // but we need to check if a similar query is fired
+        return $this;
+    }
+  
+    
     // sets the api url like 'http:server.org' no trailing slash
     public function api($url) {
         $this->query['api_url'] = $url;
@@ -86,11 +121,11 @@ class Ocd implements Iterator {
      */
 
     public function rewind() {
-        if (!$this->get_search(0)) {
+        if (!$this->get_results(0)) {
             return FALSE;
         }
         if (!isset($this->page['hits']['total'])) {
-            throw new Exception('no data found');
+            throw new Exception('No data found');
         }
         $this->total = $this->page['hits']['total'];
         $this->current = 0;
@@ -105,7 +140,7 @@ class Ocd implements Iterator {
 
     public function current() {
         if ($this->valid()) {
-            return $this->page['hits']['hits'][($this->current % $this->page_size)];
+            return $this->page['hits']['hits'][($this->current % $this->size)];
         }
         return FALSE;
     }
@@ -131,10 +166,10 @@ class Ocd implements Iterator {
         if (!$this->validate($this->current)) {
             return FALSE;
         }
-        if ($this->current % $this->page_size == 0 && $this->current / $this->page_size > 0 && !$this->get_search((int) ($this->current / $this->page_size ))) {
+        if ($this->current % $this->size == 0 && $this->current / $this->size > 0 && !$this->get_search((int) ($this->current / $this->size ))) {
             return FALSE;
         }
-        return $this->page['hits']['hits'][($this->current % $this->page_size)];
+        return $this->page['hits']['hits'][($this->current % $this->size)];
     }
 
     /* Checks if current position is valid
@@ -146,7 +181,11 @@ class Ocd implements Iterator {
         return $this->validate($this->current);
     }
 
+    // private validation function
     private function validate($pos) {
+        if (!isset($this->total)) {
+            return FALSE;
+        }
         if ($pos > ($this->total - 1)) {
             return FALSE;
         }
@@ -157,19 +196,21 @@ class Ocd implements Iterator {
         return TRUE;
     }
 
-    private function get_search($page_num) {
+    private function get_results($page_num) {
         assert($page_num >= 0);
-        $offset = $page_num * $this->page_size;
-        $data = array('query' => $this->query['query_str'],
-            'filters' => $this->query['filters'],
-            'facets' => $this->query['facets'],
-            'size' => $this->page_size,
-            'from' => $offset); //to implement sort
-        //print("Loading From $offset Size $this->page_size\n");
-        $json = $this->rest($this->query['source'] . "/search", json_encode($data));
-        if (@$json['status'] == "error")
-            return FALSE;
+        $from = $page_num * $this->size;
 
+        $data = array('query' => @$this->query['query_str'],
+            'filters' => @$this->query['filters'],
+            'facets' => @$this->query['facets'],
+            'sort' => @$this->query['sort'],
+            'size' => $this->size,
+            'from' => $from); //to implement sort
+
+        $json = $this->rest($this->query['source'] . "/search", json_encode($data));
+        if (@$json['status'] == "error") {
+            return FALSE;
+        }
         $this->page = $json;
         return TRUE;
     }
