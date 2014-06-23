@@ -1,6 +1,8 @@
 <?php
 require_once 'ocd.php';
-$q = 'rijksmuseum';
+// 'van gogh executie' (only 3 results)
+// 'rijksmuseum (about 5800 results)
+$q = 'rembrandt+olieverf';// gives nice results
 $collection = null;
 
 if (isset($_GET['q']) && $_GET['q'] != '') {
@@ -12,12 +14,10 @@ if (isset($_GET['collection']) && $_GET['collection'] != '') {
 }
 
 $ocd = new Ocd();
-
-//$ocd->search('van gogh executie');
 $result = $ocd->search($q)
         ->add_facets(array('collection' => array($collection)))
         ->add_filters(array('media_content_type' => array('terms' => array('image/jpeg', 'image/gif', 'image/png'))))
-        ->limit(3)
+        ->limit(100)
         ->query();
 ?>
 <?php print('<?xml version="1.0" encoding="UTF-8" ?>'); ?>
@@ -26,7 +26,7 @@ $result = $ocd->search($q)
         <title>Open Cultuur Data RSS</title>
         <description>A RSS feed based on a search from search.opencultuurdata.nl</description>
         <link>http://search.opencultuurdata.nl/</link>
-<!--        <atom:link rel="self" href="http://search.opencultuurdata.nl/rss.php" />-->
+        <atom:link rel="self" href="http://search.opencultuurdata.nl/rss.php" />
         <language>en-us</language>
         <docs>http://www.opencultuurdata.nl/</docs>
         <?php foreach ($result as $item) { ?>
@@ -35,9 +35,9 @@ $result = $ocd->search($q)
                 <link><?= $item['_source']['meta']['ocd_url'] ?></link>
                 <description>Not really.</description>
                 <enclosure url="<?= $item['_source']['media_urls'][0]['url'] ?>" type="<?= $item['_source']['media_urls'][0]['content_type'] ?>" />          
-    <!--                <guid isPermaLink="false"><?= $item['_source']['meta']['ocd_url'] ?></guid>
+                <guid isPermaLink="false"><?= $item['_source']['meta']['ocd_url'] ?></guid>
                 <pubDate><?= $item['_source']['date'] ?></pubDate>
-                <source url="http://search.opencultuurdata.nl/">A search from search.opencultuurdata.nl</source>-->
+                <source url="http://search.opencultuurdata.nl/">A search from search.opencultuurdata.nl</source>
             </item>
         <?php } ?> 
     </channel>
