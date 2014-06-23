@@ -26,7 +26,7 @@ $result = $ocd->search($q)
         <title>Open Cultuur Data RSS</title>
         <description>A RSS feed based on a search from search.opencultuurdata.nl</description>
         <link>http://search.opencultuurdata.nl/</link>
-        <atom:link rel="self" href="http://search.opencultuurdata.nl/rss.php" />
+<!--        <atom:link rel="self" href="http://search.opencultuurdata.nl/rss.php" />-->
         <language>en-us</language>
         <docs>http://www.opencultuurdata.nl/</docs>
         <?php foreach ($result as $item) { ?>
