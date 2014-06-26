@@ -15,7 +15,7 @@ class Ocd implements Iterator {
     }
 
     public function get_facets(){ 
-        // return facets from $this->page if they exist
+        // return facets if they exist
          return $this->page['facets'];        
     }
     
@@ -27,6 +27,7 @@ class Ocd implements Iterator {
         // !search 
         // but source && similar is required
         $this->query['object_id'] = $object_id;
+        return $this->page;        
         return ;//! $this;, but return HTML stub
     }
     
