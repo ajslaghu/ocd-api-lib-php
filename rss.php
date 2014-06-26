@@ -1,4 +1,7 @@
 <?php
+header('Content-Type: application/rss+xml; charset=utf-8');
+print('<?xml version="1.0" encoding="utf-8" ?>' . "\n"); ?>
+<?php
 require_once 'ocd.php';
 // 'van gogh executie' (only 3 results)
 // 'rijksmuseum (about 5800 results)
@@ -18,13 +21,9 @@ $result = $ocd->search($q)
         ->add_facets(array('collection' => array($collection)))
         ->add_filters(array('media_content_type' => array('terms' => array('image/jpeg', 'image/gif', 'image/png'))))
         ->sort('meta.processing_finished')
-        ->limit(100)
+        ->limit(30)
         ->query();
 ?>
-<?php
-header('Content-Type: application/rss+xml; charset=utf-8');
-?>
-    <?php print('<?xml version="1.0" encoding="utf-8" ?>'); ?>
 <rss version="2.0" xml:base="http://search.opencultuurdata.nl/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
     <channel> 
         <title>Open Cultuur Data RSS</title>
