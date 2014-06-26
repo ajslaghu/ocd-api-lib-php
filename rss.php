@@ -20,7 +20,7 @@ $result = $ocd->search($q)
         ->limit(100)
         ->query();
 ?>
-<?php print('<?xml version="1.0" encoding="UTF-8" ?>'); ?>
+<?php print('<?xml version="1.0" encoding="\'UTF-8\'" ?>'); ?>
 <rss version="2.0" xml:base="http://search.opencultuurdata.nl/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
     <channel> 
         <title>Open Cultuur Data RSS</title>
@@ -36,7 +36,7 @@ $result = $ocd->search($q)
                 <description>Not really.</description>
                 <enclosure url="<?= $item['_source']['media_urls'][0]['url'] ?>" type="<?= $item['_source']['media_urls'][0]['content_type'] ?>" />          
                 <guid isPermaLink="false"><?= $item['_source']['meta']['ocd_url'] ?></guid>
-                <pubDate><?= $item['_source']['date'] ?></pubDate>
+                <pubDate><?= date($item['_source']['date']) ?></pubDate>
                 <source url="http://search.opencultuurdata.nl/">A search from search.opencultuurdata.nl</source>
             </item>
         <?php } ?> 

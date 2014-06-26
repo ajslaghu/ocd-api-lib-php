@@ -12,6 +12,7 @@ class Ocd implements Iterator {
         $this->query['api_version'] = '/v0';
         $this->query['limit'] = NULL;
         $this->query['source'] = NULL;
+        $this->query['sort'] = '_score';
     }
 
     // not tested yet
@@ -58,6 +59,7 @@ class Ocd implements Iterator {
 
     // (re)sets sort based on array of sort hashes
     // { "date":   { "order": "desc" }},{ "_score": { "order": "desc" }}
+    // meta.source, meta.processing_started, meta.processing_finished, date, date_granularity, authors, _score
     public function sort($sort) {
         $this->query['sort'] = $sort;
         return $this;
@@ -169,7 +171,7 @@ class Ocd implements Iterator {
         if (!$this->validate($this->current)) {
             return FALSE;
         }
-        if ($this->current % $this->size == 0 && $this->current / $this->size > 0 && !$this->get_search((int) ($this->current / $this->size ))) {
+        if ($this->current % $this->size == 0 && $this->current / $this->size > 0 && !$this->get_results((int) ($this->current / $this->size ))) {
             return FALSE;
         }
         return $this->page['hits']['hits'][($this->current % $this->size)];
@@ -212,9 +214,11 @@ class Ocd implements Iterator {
 
         $json = $this->rest($this->query['source'] . "/search", json_encode($data));
         if (@$json['status'] == "error") {
+            throw new Exception($json['error']);
             return FALSE;
         }
         $this->page = $json;
+        
         return TRUE;
     }
 
