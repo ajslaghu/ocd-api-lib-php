@@ -8,6 +8,10 @@ require_once 'ocd.php';
 $q = 'rembrandt+olieverf';// gives nice results
 $collection = null;
 
+$nq = filter_input(INPUT_GET, 'q' );
+echo "NQ" . $nq . "\n";
+$nc = filter_input(INPUT_GET, 'collection');
+
 if (isset($_GET['q']) && $_GET['q'] != '') {
     $q = urldecode($_GET['q']);
 }
@@ -21,7 +25,7 @@ $result = $ocd->search($q)
         ->add_facets(array('collection' => array($collection)))
         ->add_filters(array('media_content_type' => array('terms' => array('image/jpeg', 'image/gif', 'image/png'))))
         ->sort('meta.processing_finished')
-        ->limit(30)
+        ->limit(1)
         ->query();
 ?>
 <rss version="2.0" xml:base="http://search.opencultuurdata.nl/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
@@ -36,7 +40,7 @@ $result = $ocd->search($q)
             <item>
                 <title><?= $item['_source']['title'] ?></title>
                 <link><?= $item['_source']['meta']['ocd_url'] ?></link>
-                <description>Not really.</description>
+                <description><?= $item['_source']['description'] ?></description>
                 <enclosure url="<?= $item['_source']['media_urls'][0]['url'] ?>" type="<?= $item['_source']['media_urls'][0]['content_type'] ?>"  length="250000" />          
                 <guid isPermaLink="false"><?= $item['_source']['meta']['ocd_url'] ?></guid>
                 <pubDate><?= date_format(new DateTime(($item['_source']['meta']['processing_finished'])), DateTime::RFC2822) ?></pubDate>
