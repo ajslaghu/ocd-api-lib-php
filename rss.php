@@ -17,6 +17,7 @@ $ocd = new Ocd();
 $result = $ocd->search($q)
         ->add_facets(array('collection' => array($collection)))
         ->add_filters(array('media_content_type' => array('terms' => array('image/jpeg', 'image/gif', 'image/png'))))
+        ->sort('meta.processing_finished')
         ->limit(100)
         ->query();
 ?>
@@ -36,7 +37,7 @@ $result = $ocd->search($q)
                 <description>Not really.</description>
                 <enclosure url="<?= $item['_source']['media_urls'][0]['url'] ?>" type="<?= $item['_source']['media_urls'][0]['content_type'] ?>" />          
                 <guid isPermaLink="false"><?= $item['_source']['meta']['ocd_url'] ?></guid>
-                <pubDate><?= date($item['_source']['date']) ?></pubDate>
+                <pubDate><?= date_format(new DateTime(($item['_source']['meta']['processing_finished'])), DateTime::RFC822) ?></pubDate>
                 <source url="http://search.opencultuurdata.nl/">A search from search.opencultuurdata.nl</source>
             </item>
         <?php } ?> 
