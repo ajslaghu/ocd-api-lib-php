@@ -14,13 +14,14 @@ class Ocd implements Iterator {
         $this->query['source'] = NULL;
     }
 
+    // not tested yet
     public function get_facets(){ 
         // return facets if they exist
          return $this->page['facets'];        
     }
     
     
-    
+    // not tested yet
     // returns version of the object that is not iteratable
     // GET /(source_id)/(object_id)/source
     public function object($id){
@@ -31,6 +32,7 @@ class Ocd implements Iterator {
         return ;//! $this;, but return HTML stub
     }
     
+    // not tested yet
     public function similar($id) {
         // source is allowed
         $this->query['similar'] = $id;
