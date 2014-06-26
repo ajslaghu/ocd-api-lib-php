@@ -37,7 +37,7 @@ $result = $ocd->search($q)
                 <title><?= $item['_source']['title'] ?></title>
                 <link><?= $item['_source']['meta']['ocd_url'] ?></link>
                 <description>Not really.</description>
-                <enclosure url="<?= $item['_source']['media_urls'][0]['url'] ?>" type="<?= $item['_source']['media_urls'][0]['content_type'] ?>" />          
+                <enclosure url="<?= $item['_source']['media_urls'][0]['url'] ?>" type="<?= $item['_source']['media_urls'][0]['content_type'] ?>"  length="250000" />          
                 <guid isPermaLink="false"><?= $item['_source']['meta']['ocd_url'] ?></guid>
                 <pubDate><?= date_format(new DateTime(($item['_source']['meta']['processing_finished'])), DateTime::RFC2822) ?></pubDate>
                 <source url="http://search.opencultuurdata.nl/">A search from search.opencultuurdata.nl</source>
