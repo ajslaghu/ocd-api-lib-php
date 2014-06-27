@@ -8,9 +8,9 @@ require_once 'ocd.php';
 $q = 'rembrandt+olieverf';// gives nice results
 $collection = null;
 
-$nq = filter_input(INPUT_GET, 'q' );
-echo "NQ" . $nq . "\n";
-$nc = filter_input(INPUT_GET, 'collection');
+//nq = filter_input(INPUT_GET, 'q' );
+////echo "NQ" . $nq . "\n";
+//$nc = filter_input(INPUT_GET, 'collection');
 
 if (isset($_GET['q']) && $_GET['q'] != '') {
     $q = urldecode($_GET['q']);
