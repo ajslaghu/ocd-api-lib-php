@@ -25,7 +25,7 @@ $result = $ocd->search($q)
         ->add_facets(array('collection' => array($collection)))
         ->add_filters(array('media_content_type' => array('terms' => array('image/jpeg', 'image/gif', 'image/png'))))
         ->sort('meta.processing_finished')
-        ->limit(1)
+        ->limit(100)
         ->query();
 ?>
 <rss version="2.0" xml:base="http://search.opencultuurdata.nl/" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
