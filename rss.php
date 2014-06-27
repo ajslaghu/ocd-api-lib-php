@@ -3,22 +3,14 @@ header('Content-Type: application/rss+xml; charset=utf-8');
 print('<?xml version="1.0" encoding="utf-8" ?>' . "\n"); ?>
 <?php
 require_once 'ocd.php';
+
 // 'van gogh executie' (only 3 results)
 // 'rijksmuseum (about 5800 results)
-$q = 'rembrandt+olieverf';// gives nice results
-$collection = null;
+define("DEF_QUERY", "rembrandt+olieverf");// gives nice results
 
-//nq = filter_input(INPUT_GET, 'q' );
-////echo "NQ" . $nq . "\n";
-//$nc = filter_input(INPUT_GET, 'collection');
-
-if (isset($_GET['q']) && $_GET['q'] != '') {
-    $q = urldecode($_GET['q']);
-}
-
-if (isset($_GET['collection']) && $_GET['collection'] != '') {
-    $collection = urldecode($_GET['collection']);
-}
+$q = filter_input(INPUT_GET, 'q' ) ? filter_input(INPUT_GET, 'q' ) : DEF_QUERY ;
+$collection = filter_input(INPUT_GET, 'collection') ? filter_input(INPUT_GET, 'collection') : null;
+// probably no url decode required cus filter_input will already handle this?
 
 $ocd = new Ocd();
 $result = $ocd->search($q)
