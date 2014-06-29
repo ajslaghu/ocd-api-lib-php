@@ -67,16 +67,16 @@ class Ocd implements Iterator {
     
     // adds array of facets to current query which are added to stack
     public function add_facets($facets) {
-        foreach ($facets as $item) {
-            $this->query['facets'][key($facets)] = $facets[key($facets)];
+        foreach ($facets as $key => $value) {
+            $this->query['facets'][$key] = $value;
         }
         return $this;
     }
 
     // assumes array of filters key values which are added to stack
     public function add_filters($filters) {
-        foreach ($filters as $item) {
-            $this->query['filters'][key($filters)] = $filters[key($filters)];
+        foreach ($filters as  $key => $value) {
+            $this->query['filters'][$key] = $value;
         }
         return $this;
     }
