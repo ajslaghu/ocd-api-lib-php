@@ -67,16 +67,16 @@ class Ocd implements Iterator {
     
     // adds array of facets to current query which are added to stack
     public function add_facets($facets) {
-        foreach ($facets as $item) {
-            $this->query['facets'][key($facets)] = $facets[key($facets)];
+        foreach ($facets as $key => $value) {
+            $this->query['facets'][$key] = $value;
         }
         return $this;
     }
 
     // assumes array of filters key values which are added to stack
     public function add_filters($filters) {
-        foreach ($filters as $item) {
-            $this->query['filters'][key($filters)] = $filters[key($filters)];
+        foreach ($filters as  $key => $value) {
+            $this->query['filters'][$key] = $value;
         }
         return $this;
     }
@@ -230,7 +230,8 @@ class Ocd implements Iterator {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
             'Content-Type: application/json',
-            'Content-Length: ' . strlen($post_fields)));
+            'Content-Length: ' . strlen($post_fields),
+            'X-Requested-With: XMLHttpRequest'));
         $result = curl_exec($ch);
         return json_decode($result, TRUE);
     }
