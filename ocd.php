@@ -230,7 +230,8 @@ class Ocd implements Iterator {
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array(
             'Content-Type: application/json',
-            'Content-Length: ' . strlen($post_fields)));
+            'Content-Length: ' . strlen($post_fields),
+            'X-Requested-With: XMLHttpRequest'));
         $result = curl_exec($ch);
         return json_decode($result, TRUE);
     }
