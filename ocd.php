@@ -8,49 +8,48 @@ class Ocd implements Iterator {
     private $current; // pointer to array n=0,1,...,n
 
     public function __construct() {
-        $this->query['api_url'] = 'http://api.opencultuurdata.nl';
-        $this->query['api_version'] = '/v0';
-        $this->query['limit'] = NULL;
-        $this->query['source'] = NULL;
-        $this->query['sort'] = '_score';
+        $this->api_url = 'http://api.opencultuurdata.nl';
+        $this->api_version = '/v0';
     }
 
     // not tested yet
-    public function get_facets(){ 
+    public function get_facets() {
         // return facets if they exist
-         return $this->page['facets'];        
+        // but they don't exist if we haven't rewinded yet
+        if (isset($this->page)) {
+            echo "page set";
+        }
+        echo "page not set";
+        return $this->page['facets'];
     }
-    
-    
+
     // not tested yet
     // returns version of the object that is not iteratable
     // GET /(source_id)/(object_id)/source
-    public function object($id){
+    public function object($id) {
         // !search 
         // but source && similar is required
         $this->query['object_id'] = $object_id;
-        return $this->page;        
-        return ;//! $this;, but return HTML stub
+        return $this->page;
+        return; //! $this;, but return HTML stub
     }
-    
+
     // not tested yet
     public function similar($id) {
         // source is allowed
         $this->query['similar'] = $id;
-        $this->query['query_str'] = null;
+        unset($this->query['query']);
         return $this;
     }
 
     // sets the search query string
-    public function search($search_str) {        
+    public function search($search_str) {
         // source is allowed
-        $this->query['query_str'] = $search_str;
-        $this->query['similar']= null;
+        $this->query['query'] = $search_str;
+        unset($this->query['similar']);
         return $this;
     }
 
-    
-    
     // sets the (sole) source of the Query (Rijksmuseum, Stedelijk). Null == Everything
     public function source($source) {
         $this->query['source'] = $source;
@@ -64,13 +63,13 @@ class Ocd implements Iterator {
         $this->query['sort'] = $sort;
         return $this;
     }
-    
+
     // adds array of facets to current query which are added to stack
     public function add_facets($facets) {
-        foreach ($facets as $item) {
-            $this->query['facets'][key($facets)] = $facets[key($facets)];
-        }
-        return $this;
+        foreach ($facets as $key => $value) {
+            $this->query['facets'][$key] = $value;
+        } return $this;
+        
     }
 
     // assumes array of filters key values which are added to stack
@@ -80,7 +79,6 @@ class Ocd implements Iterator {
         }
         return $this;
     }
-
 
     // (re)sets facets with array of facets
     public function facets($facets) {
@@ -94,7 +92,7 @@ class Ocd implements Iterator {
         return $this;
     }
 
-        // sets the maximum results
+    // sets the maximum results
     public function limit($results) {
         $this->query['limit'] = $results;
         return $this;
@@ -105,10 +103,11 @@ class Ocd implements Iterator {
         // retrieve full object other option?
         // now we assume a search query in our iterator class (Rewind and Next
         // but we need to check if a similar query is fired
+        //rewind
+
         return $this;
     }
-  
-    
+
     // sets the api url like 'http:server.org' no trailing slash
     public function api($url) {
         $this->query['api_url'] = $url;
@@ -205,20 +204,20 @@ class Ocd implements Iterator {
         assert($page_num >= 0);
         $from = $page_num * $this->size;
 
-        $data = array('query' => @$this->query['query_str'],
-            'filters' => @$this->query['filters'],
-            'facets' => @$this->query['facets'],
-            'sort' => @$this->query['sort'],
-            'size' => $this->size,
-            'from' => $from); //to implement sort
+        foreach ($this->query as $key => $value) {
+            $data[$key] = $value;
+// but also $similar??
+        }
+        $data['size'] = $this->size;
+        $data['from'] = $from;
 
-        $json = $this->rest($this->query['source'] . "/search", json_encode($data));
+        $json = $this->rest(@$this->query['source'] . "/search", json_encode($data));
         if (@$json['status'] == "error") {
             throw new Exception($json['error']);
             return FALSE;
         }
         $this->page = $json;
-        
+
         return TRUE;
     }
 
@@ -237,7 +236,7 @@ class Ocd implements Iterator {
 
     // returns the uri consisting of the url and api version
     public function api_uri() {
-        return $this->query['api_url'] . $this->query['api_version'];
+        return $this->api_url . $this->api_version;
     }
 
 }
