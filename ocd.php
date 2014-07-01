@@ -2,25 +2,14 @@
 
 class Ocd implements Iterator {
 
+    private $size = 5; // #results per API call; impact on memory
     private $query; // hash for input
     private $page; // the result (page)hash we provide during iteration n=0,..,n
-    private $size = 20; // impact on memory
     private $current; // pointer to array n=0,1,...,n
 
     public function __construct() {
         $this->api_url = 'http://api.opencultuurdata.nl';
         $this->api_version = '/v0';
-    }
-
-    // not tested yet
-    public function get_facets() {
-        // return facets if they exist
-        // but they don't exist if we haven't rewinded yet
-        if (isset($this->page)) {
-            echo "page set";
-        }
-        echo "page not set";
-        return $this->page['facets'];
     }
 
     // not tested yet
@@ -34,7 +23,7 @@ class Ocd implements Iterator {
         return; //! $this;, but return HTML stub
     }
 
-    // not tested yet
+    // GET /similar/object-id / not tested yet
     public function similar($id) {
         // source is allowed
         $this->query['similar'] = $id;
@@ -69,13 +58,12 @@ class Ocd implements Iterator {
         foreach ($facets as $key => $value) {
             $this->query['facets'][$key] = $value;
         } return $this;
-        
     }
 
     // assumes array of filters key values which are added to stack
     public function add_filters($filters) {
-        foreach ($filters as $item) {
-            $this->query['filters'][key($filters)] = $filters[key($filters)];
+        foreach ($filters as $key => $value) {
+            $this->query['filters'][$key] = $value;
         }
         return $this;
     }
@@ -98,13 +86,17 @@ class Ocd implements Iterator {
         return $this;
     }
 
-    // Finalizes Object for Iteration (does no loading yet!)
+    // Loads Query So Iteration can take place 
+    // Flushes pointer 
     public function query() {
-        // retrieve full object other option?
-        // now we assume a search query in our iterator class (Rewind and Next
-        // but we need to check if a similar query is fired
-        //rewind
-
+        $this->current = null;
+        if (!$this->get_results(0)) {
+            return FALSE;
+        }
+        if (!isset($this->page['hits']['total'])) {
+            throw new Exception('No data found');
+        }
+        // $this->total = $this->page['hits']['total'];
         return $this;
     }
 
@@ -125,13 +117,9 @@ class Ocd implements Iterator {
      */
 
     public function rewind() {
-        if (!$this->get_results(0)) {
-            return FALSE;
-        }
         if (!isset($this->page['hits']['total'])) {
             throw new Exception('No data found');
         }
-        $this->total = $this->page['hits']['total'];
         $this->current = 0;
         return TRUE;
     }
@@ -200,16 +188,20 @@ class Ocd implements Iterator {
         return TRUE;
     }
 
+    // lets say limit is 1. What to do then?
     private function get_results($page_num) {
         assert($page_num >= 0);
         $from = $page_num * $this->size;
+
+        $data['size'] = isset($this->query['limit']) ? (
+                $this->query['limit'] < $from + $this->size ?
+                        $this->query['limit'] % $this->size : $this->size ) : $this->size;
+        $data['from'] = $from;
 
         foreach ($this->query as $key => $value) {
             $data[$key] = $value;
 // but also $similar??
         }
-        $data['size'] = $this->size;
-        $data['from'] = $from;
 
         $json = $this->rest(@$this->query['source'] . "/search", json_encode($data));
         if (@$json['status'] == "error") {
@@ -237,6 +229,38 @@ class Ocd implements Iterator {
     // returns the uri consisting of the url and api version
     public function api_uri() {
         return $this->api_url . $this->api_version;
+    }
+
+    // Returns total number of hits. We assume they are identical on every page (might be bold, ahem)
+    public function total() {
+        if (isset($this->page)) {
+            return $this->page['hits']['total'];
+        }
+        return NULL;
+    }
+
+    // Returns max_score. We assume they are identical on every page (might be bold, ahem)
+    public function max_score() {
+        if (isset($this->page)) {
+            return $this->page['hits']['max_score'];
+        }
+        return NULL;
+    }
+
+    // temporary function for debugging
+    public function get_page() {
+        if (isset($this->page)) {
+            return $this->page;
+        }
+        return NULL;
+    }
+
+    // Returns facets. We assume they are identical on every page (might be bold, ahem)
+    public function get_facets() {
+        if (isset($this->page)) {
+            return $this->page['facets'];
+        }
+        return NULL;
     }
 
 }
