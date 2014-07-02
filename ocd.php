@@ -6,7 +6,7 @@ class Ocd implements Iterator {
     private $query; // hash for input
     private $page; // the result (page)hash we provide during iteration n=0,..,n
     private $current; // pointer to array n=0,1,...,n
-    private $limit;//limit for results
+    private $limit; //limit for results
 
     public function __construct() {
         $this->api_url = 'http://api.opencultuurdata.nl/';
@@ -21,12 +21,11 @@ class Ocd implements Iterator {
 // returns version of the object that is not iteratable
 // GET /(source_id)/(object_id)/source
     public function get_object($id, $getsrc = false) {
-        // but source = allowed 
+        assert(!isset($this->query['query']) && !isset($this->query['similar']));
         unset($this->query['query']); // but source = allowed 
         unset($this->query['similar']);
         $this->query['object_id'] = $id;
 
-        assert(!isset($this->query['query']) && !isset($this->query['similar']));
         if (!$this->get_source()) {
             throw new Exception('Object($id, getsrc)->Query() requires ->source($src) param');
         }
@@ -34,7 +33,6 @@ class Ocd implements Iterator {
 
         return $this->rest($op, "GET");
     }
-
 
 // GET /similar/object-id returns similar objects
     public function similar($id) {
@@ -63,7 +61,7 @@ class Ocd implements Iterator {
     }
 
 // sets the (sole) source of the Query (Rijksmuseum, Stedelijk). Null == Everything
-    public function source($source=null) {
+    public function source($source = null) {
         $this->query['source'] = $source;
         return $this;
     }
@@ -103,7 +101,7 @@ class Ocd implements Iterator {
     }
 
 // sets the maximum results
-    public function limit($results=null) {
+    public function limit($results = null) {
         $this->limit = $results;
         return $this;
     }
@@ -117,10 +115,9 @@ class Ocd implements Iterator {
             $this->current = 0;
             if (!$this->get_results())
                 return FALSE;
-        } //other cases (null, or on first page)
+        } //other cases (null (error), or already on first page)
         $this->current = 0;
-        if (!$this->validate($this->current)) {
-            //throw new Exception('!$this->validate($this->current)\n');
+        if (!$this->validate($this->current)) {// further error handling            
             return FALSE;
         }
         return TRUE;
@@ -262,7 +259,7 @@ class Ocd implements Iterator {
             $data[$key] = $value;
         }
         $result = $this->rest($op, "POST", json_encode($data));
-       // var_dump($result);
+        // var_dump($result);
         $json = json_decode($result, TRUE);
         if (@$json['status'] == "error") {
             throw new Exception($json['error']);
