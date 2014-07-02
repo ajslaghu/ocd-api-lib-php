@@ -281,7 +281,7 @@ class Ocd implements Iterator {
 
 // performs the actual curl request    
     private function rest($op, $request, $post_fields = null) {
-        print("rest() $request op " . $this->api_uri() . $op . " fields $post_fields\n");
+        //print("rest() $request op " . $this->api_uri() . $op . " fields $post_fields\n");
         $ch = curl_init($this->api_uri() . $op);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $request);
         if ($post_fields != null) {
