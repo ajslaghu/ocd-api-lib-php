@@ -207,7 +207,7 @@ class Ocd implements Iterator {
 
         $data = array('query' => @$this->query['query_str'],
             'filters' => @$this->query['filters'],
-            'facets' => @$this->query['facets'],
+            'facets' => ( @$this->query['facets'] ? @$this->query['facets'] : (object) null ),
             'sort' => @$this->query['sort'],
             'size' => $this->size,
             'from' => $from); //to implement sort
